@@ -1,0 +1,16 @@
+export default {
+  black: 'black',
+  gray: '#E5E5E5',
+  grayDark: '#888',
+  grayDarkX: '#7E868C',
+  grayDarkXX: '#687076',
+  grayLight: '#F1F3F5',
+  grayLightX: '#F8F8F8',
+  grayMedium: '#E6E8EB',
+  primary: '#39bf82',
+  primaryLight: '#a9dbc5',
+  red: '#de5246',
+  rgbGray: 'rgba(0, 0, 0, 0.02)',
+  secondary: '#3182ce',
+  white: 'white',
+};

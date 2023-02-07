@@ -1,0 +1,32 @@
+{
+  "name": "butlergiftweb",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@nextui-org/react": "^1.0.0-beta.12",
+    "@reduxjs/toolkit": "^1.9.2",
+    "bluebird": "^3.7.2",
+    "firebase": "^9.17.1",
+    "next": "13.1.6",
+    "next-redux-wrapper": "^8.1.0",
+    "prop-types": "^15.8.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-jss": "^10.9.2",
+    "react-redux": "^8.0.5"
+  },
+  "devDependencies": {
+    "eslint": "^8.24.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsx-a11y": "^6.6.1",
+    "eslint-plugin-react": "^7.31.8",
+    "eslint-plugin-react-hooks": "^4.6.0"
+  }
+}

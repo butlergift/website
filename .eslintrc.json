@@ -1,0 +1,13 @@
+{
+  "extends": "airbnb",
+  "rules": {
+    "max-len": ["error", {"code": 150}],
+    "object-curly-newline": "off",
+    "react/function-component-definition": "off",
+    "react/jsx-filename-extension": "off",
+    "react/react-in-jsx-scope": "off"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020
+  }
+}
