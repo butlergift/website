@@ -31,6 +31,7 @@ const ItemCard = ({ classes, item }) => {
           alt={item.productTags.join(',')}
         />
       </Card.Body>
+      <Card.Divider />
       <Card.Footer className={classes.tagsContainer}>
         <Text size={12} weight="bold" transform="uppercase" color={Colors.grayDarkX}>
           Tags:

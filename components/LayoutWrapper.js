@@ -1,12 +1,13 @@
 /* eslint-disable react/prop-types */
 import Image from 'next/image';
-import { Navbar, Button, Link } from '@nextui-org/react';
+import Link from 'next/link';
+import { Navbar, Button } from '@nextui-org/react';
 import srcLogoIcon from '../public/logo.svg';
 
 const LayoutWrapper = ({ children }) => (
   <div>
     <Navbar variant="static">
-      <Navbar.Brand>
+      <Navbar.Brand as={Link} href="/">
         <Image
           priority
           src={srcLogoIcon}
@@ -15,14 +16,8 @@ const LayoutWrapper = ({ children }) => (
           alt="ButlerGift"
         />
       </Navbar.Brand>
-      {/* <Navbar.Content hideIn="xs" variant="highlight-rounded">
-        <Navbar.Link href="#">Features</Navbar.Link>
-        <Navbar.Link isActive href="#">Customers</Navbar.Link>
-        <Navbar.Link href="#">Pricing</Navbar.Link>
-        <Navbar.Link href="#">Company</Navbar.Link>
-      </Navbar.Content> */}
       <Navbar.Content>
-        <Navbar.Link color="inherit" href="#">
+        <Navbar.Link color="inherit" as={Link} href="/signin">
           Login
         </Navbar.Link>
         <Navbar.Item>

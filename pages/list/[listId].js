@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import injectSheet from 'react-jss';
 import Head from 'next/head';
@@ -9,6 +9,8 @@ import ItemCard from '../../components/shared/ItemCard';
 import Colors from '../../components/colors';
 
 import { actions as actionsListLP } from '../../redux/sliceListLandingPage';
+
+const NUM_ITEMS_PER_PAGE = 10;
 
 const styles = {
   title: {
@@ -22,6 +24,7 @@ const styles = {
 };
 
 const List = ({ classes, listId }) => {
+  const [currPage, setCurrPage] = useState(0);
   const listLPState = useSelector((state) => state.listLandingPage) || {};
   const dispatch = useDispatch();
 
@@ -48,7 +51,7 @@ const List = ({ classes, listId }) => {
         <h1 className={classes.title}>{listLPState.listTitle}</h1>
         <Grid.Container gap={2} justify="center">
           {
-            listLPState.list.map((item) => (
+            listLPState.list.slice(NUM_ITEMS_PER_PAGE * currPage, NUM_ITEMS_PER_PAGE * (currPage + 1)).map((item) => (
               <Grid xs={12} sm={4} key={item.productId}>
                 <ItemCard item={item} />
               </Grid>
@@ -60,10 +63,10 @@ const List = ({ classes, listId }) => {
           listLPState.list.length > 0 && (
             <Pagination
               color="success"
-              total={listLPState.list.length}
+              total={Math.ceil(listLPState.list.length / NUM_ITEMS_PER_PAGE)}
               initialPage={1}
               className={classes.pagination}
-              onChange={() => console.log('>>> TODO Pagination!')}
+              onChange={(page) => setCurrPage(page - 1)}
             />
           )
         }
