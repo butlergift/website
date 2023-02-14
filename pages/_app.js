@@ -5,6 +5,7 @@ import { NextUIProvider } from '@nextui-org/react';
 
 import '../styles/globals.css';
 import LayoutWrapper from '../components/LayoutWrapper';
+import AuthContextProvider from '../components/shared/auth/AuthContext';
 import storeWrapper from '../redux/store';
 
 function MyApp({ Component, ...rest }) {
@@ -13,9 +14,11 @@ function MyApp({ Component, ...rest }) {
   return (
     <NextUIProvider>
       <Provider store={store}>
-        <LayoutWrapper>
-          <Component {...pageProps} />
-        </LayoutWrapper>
+        <AuthContextProvider>
+          <LayoutWrapper>
+            <Component {...pageProps} />
+          </LayoutWrapper>
+        </AuthContextProvider>
       </Provider>
     </NextUIProvider>
   );

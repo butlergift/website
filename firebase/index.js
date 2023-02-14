@@ -24,35 +24,8 @@ try {
 }
 
 // const analytics = getAnalytics(app);
+export const auth = firebaseAuth.getAuth(app);
 const firestore = firebaseFirestore.getFirestore(app);
 
 export const getUserWishlists = (args) => wishlists.getUserWishlists(firebaseFirestore, firestore, args);
 export const getListItemsById = (args) => wishlistItems.getListItemsById(firebaseFirestore, firestore, args);
-
-// --------------------------------------------------
-// AUTH
-// --------------------------------------------------
-
-export const auth = firebaseAuth.getAuth(app);
-
-export async function signOut() {
-  try {
-    await firebaseAuth.signOut(auth);
-    return {};
-  } catch ({ name, message, stack }) {
-    return { error: { name, message, stack } };
-  }
-}
-
-export async function idTokenChangedListener(callbackListener) {
-  try {
-    return firebaseAuth.onIdTokenChanged(callbackListener);
-  } catch ({ name, message, stack }) {
-    return { error: { name, message, stack } };
-  }
-}
-
-export const authProviders = {
-  EmailAuthProvider: firebaseAuth.EmailAuthProvider.PROVIDER_ID,
-  GoogleAuthProvider: firebaseAuth.GoogleAuthProvider.PROVIDER_ID,
-};

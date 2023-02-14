@@ -10,14 +10,19 @@ const withAuth = (Component) => (props) => {
   const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
-    auth.onAuthStateChanged((authUser) => {
-      if (!authUser) {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user) {
         setLoading(true);
-        router.push('/signin');
+        router.push('/'); // TODO: create signin page!
         return;
       }
       setLoading(false);
     });
+
+    // Make sure to unsubscribe
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   return (

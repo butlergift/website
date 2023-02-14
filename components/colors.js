@@ -7,6 +7,7 @@ export default {
   grayLight: '#F1F3F5',
   grayLightX: '#F8F8F8',
   grayMedium: '#E6E8EB',
+  grayMediumX: '#AEAEAE',
   primary: '#39bf82',
   primaryLight: '#a9dbc5',
   red: '#de5246',
