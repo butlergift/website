@@ -15,13 +15,27 @@ import { useAuth } from '../components/shared/auth/AuthContext';
 
 const styles = {
   container: {
-    color: Colors.grayDark,
     marginTop: '20px',
+  },
+  inputText: {
+    '--nextui--inputHoverBorderColor': Colors.primaryLight,
+    '& span, label': {
+      color: Colors.grayDark,
+    },
+    '& button span': {
+      color: Colors.grayMediumX,
+    },
+  },
+  cardHeader: {
+    justifyContent: 'center',
+    padding: '0px',
   },
   cardContainer: {
     padding: '20px',
-    '& p, p *': {
-      color: Colors.grayDarkXX,
+  },
+  cardBody: {
+    '& label': {
+      color: Colors.grayDark,
     },
   },
   companyIcon: {
@@ -37,16 +51,10 @@ const styles = {
   forgotPassword: {
     background: 'transparent',
     color: Colors.grayDark,
-    justifyContent: 'right',
   },
   modalContainer: {
     color: Colors.grayDark,
-    '& p, p *, label': {
-      color: Colors.grayDark,
-    },
-    '& b': {
-      color: Colors.grayDarkXX,
-    },
+    fontWeight: '600',
   },
   modalPasswordClose: {
     background: Colors.grayMedium,
@@ -61,6 +69,7 @@ const styles = {
 const Login = ({ classes }) => {
   const router = useRouter();
   const [loginSignupView, setLoginSignupView] = useState('login');
+  const [loginSignupErrorMsg, setloginSignupErrorMsg] = useState('');
   const [forgotPasswordModalVisible, setForgotPasswordModalVisible] = useState(false);
   const [forgotPasswordPostMessage, setForgotPasswordPostMessage] = useState('');
   const { user, login, logout, register, isUserLoading, signInWithGoogle, forgotPassword } = useAuth();
@@ -76,6 +85,7 @@ const Login = ({ classes }) => {
 
   const onForgotPasswordModalClose = () => {
     setForgotPasswordModalVisible(false);
+    setloginSignupErrorMsg();
     setTimeout(() => {
       setForgotPasswordPostMessage('');
       inputEmailReset();
@@ -90,8 +100,13 @@ const Login = ({ classes }) => {
       return { text: '', color: '' };
     }
     const isValid = isValidEmail(inputEmailValue);
+    if (!isValid) {
+      setloginSignupErrorMsg('Invalid email');
+    } else {
+      setloginSignupErrorMsg('');
+    }
     return {
-      text: isValid ? 'Valid email' : 'Enter a valid email',
+      text: isValid ? 'Valid email' : 'Invalid email',
       color: isValid ? '' : 'error',
     };
   }, [inputEmailValue]);
@@ -115,17 +130,20 @@ const Login = ({ classes }) => {
   } else if (user) {
     content = (
       <Card className={classes.cardContainer}>
-        <Card.Header css={{ flexDirection: 'column' }}>
+        <Card.Header className={classes.cardHeader}>
           <Avatar
             src={user.photoURL}
             className={classes.companyIcon}
           />
-          <Spacer y={1} />
-          <Text size={18}>
-            Welcome&nbsp;
-            {user.displayName || ''}
-          </Text>
         </Card.Header>
+        <Card.Body className={classes.cardBody}>
+          <Row justify="center">
+            <Text size={18}>
+              Welcome&nbsp;
+              {user.displayName || ''}
+            </Text>
+          </Row>
+        </Card.Body>
         <Card.Divider css={{ alignSelf: 'center', width: '75%' }} />
         <Spacer y={0.5} />
         <Card.Footer>
@@ -140,13 +158,13 @@ const Login = ({ classes }) => {
   } else if (loginSignupView === 'login') {
     content = (
       <Card className={classes.cardContainer}>
-        <Card.Header css={{ flexDirection: 'column' }}>
+        <Card.Header className={classes.cardHeader}>
           <Avatar
             src="https://firebasestorage.googleapis.com/v0/b/butlergift-dev-fdebd.appspot.com/o/images%2Fcompany_icon_1024.png?alt=media&token=7368407e-477b-4e70-a3de-6373af4071ad"
             className={classes.companyIcon}
           />
         </Card.Header>
-        <Card.Body>
+        <Card.Body className={classes.cardBody}>
           <Input
             {...inputEmailBindings}
             clearable
@@ -163,6 +181,7 @@ const Login = ({ classes }) => {
             placeholder="Email"
             aria-label="Email"
             contentLeft={<HiOutlineMail />}
+            className={classes.inputText}
           />
           <Spacer y={0.5} />
           <Input.Password
@@ -177,6 +196,7 @@ const Login = ({ classes }) => {
             placeholder="Password"
             aria-label="Password"
             contentLeft={<RiLockPasswordFill />}
+            className={classes.inputText}
           />
           <Spacer y={0.2} />
           <Row justify="space-between">
@@ -191,14 +211,13 @@ const Login = ({ classes }) => {
               aria-labelledby="modal-title"
               open={forgotPasswordModalVisible}
               onClose={onForgotPasswordModalClose}
-              className={classes.modalContainer}
             >
               <Modal.Header>
-                <Text size={18} b>
+                <Text size={18} className={classes.modalContainer}>
                   Reset Password
                 </Text>
               </Modal.Header>
-              <Modal.Body>
+              <Modal.Body className={classes.cardBody}>
                 {
                   forgotPasswordPostMessage.length === 0 ? (
                     <Input
@@ -218,6 +237,7 @@ const Login = ({ classes }) => {
                       placeholder="Email"
                       aria-label="Email"
                       contentLeft={<HiOutlineMail />}
+                      className={classes.inputText}
                     />
                   ) : (
                     forgotPasswordPostMessage.split('\n').map((s) => <Text key={s} css={{ padding: 0, margin: 0 }}>{s}</Text>)
@@ -260,12 +280,36 @@ const Login = ({ classes }) => {
                     signInWithGoogle();
                     return;
                   }
-                  login(inputEmailValue, inputPasswordValue).catch(() => {});
+                  if (inputPasswordValue.length === 0) {
+                    setloginSignupErrorMsg('Password is required');
+                    return;
+                  }
+                  login(inputEmailValue, inputPasswordValue)
+                    .catch((e) => {
+                      if (e.message.indexOf('auth/user-not-found') > -1) {
+                        setloginSignupErrorMsg('User not found');
+                        return;
+                      }
+                      if (e.message.indexOf('auth/wrong-password') > -1) {
+                        setloginSignupErrorMsg('Incorrect Password');
+                        return;
+                      }
+                      if (e.message.indexOf('auth/too-many-requests') > -1) {
+                        setloginSignupErrorMsg('Too many attempts. You can reset password or try again later.');
+                        return;
+                      }
+                      setloginSignupErrorMsg('An error has occurred, please try again later');
+                    });
                 }
               }}
             >
               Login
             </Button>
+          </Row>
+          <Row justify="center">
+            {
+              loginSignupErrorMsg && <Text size={14} css={{ color: Colors.red }}>{loginSignupErrorMsg}</Text>
+            }
           </Row>
         </Card.Body>
         <Card.Divider css={{ alignSelf: 'center', width: '75%' }} />
@@ -284,13 +328,13 @@ const Login = ({ classes }) => {
     // Sign Up View
     content = (
       <Card className={classes.cardContainer}>
-        <Card.Header css={{ flexDirection: 'column' }}>
+        <Card.Header className={classes.cardHeader}>
           <Avatar
             src="https://firebasestorage.googleapis.com/v0/b/butlergift-dev-fdebd.appspot.com/o/images%2Fcompany_icon_1024.png?alt=media&token=7368407e-477b-4e70-a3de-6373af4071ad"
             className={classes.companyIcon}
           />
         </Card.Header>
-        <Card.Body>
+        <Card.Body className={classes.cardBody}>
           <Input
             {...inputEmailBindings}
             clearable
@@ -307,6 +351,7 @@ const Login = ({ classes }) => {
             placeholder="Email"
             aria-label="Email"
             contentLeft={<HiOutlineMail />}
+            className={classes.inputText}
           />
           <Spacer y={0.5} />
           <Input.Password
@@ -321,6 +366,7 @@ const Login = ({ classes }) => {
             placeholder="Password"
             aria-label="Password"
             contentLeft={<RiLockPasswordFill />}
+            className={classes.inputText}
           />
           <Spacer y={0.2} />
           <Row justify="left">
@@ -338,12 +384,28 @@ const Login = ({ classes }) => {
                     signInWithGoogle();
                     return;
                   }
-                  register(inputEmailValue, inputPasswordValue).catch(() => {});
+                  if (inputPasswordValue.length === 0) {
+                    setloginSignupErrorMsg('Password is required');
+                    return;
+                  }
+                  register(inputEmailValue, inputPasswordValue)
+                    .catch((e) => {
+                      if (e.message.indexOf('auth/email-already-in-use') > -1) {
+                        setloginSignupErrorMsg('Email already in use');
+                        return;
+                      }
+                      setloginSignupErrorMsg('An error has occurred, please try again later');
+                    });
                 }
               }}
             >
               Sign up
             </Button>
+          </Row>
+          <Row justify="center">
+            {
+              loginSignupErrorMsg && <Text size={14} css={{ color: Colors.red }}>{loginSignupErrorMsg}</Text>
+            }
           </Row>
         </Card.Body>
         <Card.Divider css={{ alignSelf: 'center', width: '75%' }} />
