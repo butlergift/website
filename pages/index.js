@@ -14,7 +14,7 @@ const styles = {
   },
 };
 
-const About = ({ classes }) => (
+const Home = ({ classes }) => (
   <>
     <Head>
       <title>Butler Gift | Home</title>
@@ -38,8 +38,8 @@ const About = ({ classes }) => (
   </>
 );
 
-About.propTypes = {
+Home.propTypes = {
   classes: PropTypes.instanceOf(Object).isRequired,
 };
 
-export default injectSheet(styles)(About);
+export default injectSheet(styles)(Home);

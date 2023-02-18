@@ -1,7 +1,6 @@
 /* eslint-disable react/jsx-no-constructed-context-values */
 /* eslint-disable react/prop-types */
 import React, { createContext, useContext, useEffect, useState } from 'react';
-
 import {
   browserLocalPersistence,
   confirmPasswordReset,
@@ -11,14 +10,14 @@ import {
   sendPasswordResetEmail,
   setPersistence,
   signInWithEmailAndPassword,
-  signInWithRedirect,
+  signInWithPopup,
   signOut,
 } from 'firebase/auth';
 
 import { auth } from '../../../firebase/index';
 
 const AuthContext = createContext({
-  currentUser: null,
+  user: null,
   signInWithGoogle: () => Promise,
   login: () => Promise,
   register: () => Promise,
@@ -33,11 +32,13 @@ export const useAuth = () => useContext(AuthContext);
 setPersistence(auth, browserLocalPersistence);
 
 export default function AuthContextProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [isUserLoading, setUserLoading] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setUserLoading(false);
     });
     return () => {
       unsubscribe();
@@ -45,17 +46,27 @@ export default function AuthContextProvider({ children }) {
   }, []);
 
   function login(email, password) {
-    return signInWithEmailAndPassword(auth, email, password);
+    setUserLoading(true);
+    return signInWithEmailAndPassword(auth, email, password)
+      .then(() => setUserLoading(false))
+      .catch((e) => {
+        setUserLoading(false);
+        throw e;
+      });
   }
 
   function register(email, password) {
-    return createUserWithEmailAndPassword(auth, email, password);
+    setUserLoading(true);
+    return createUserWithEmailAndPassword(auth, email, password)
+      .then(() => setUserLoading(false))
+      .catch((e) => {
+        setUserLoading(false);
+        throw e;
+      });
   }
 
   function forgotPassword(email) {
-    return sendPasswordResetEmail(auth, email, {
-      url: 'http://localhost:3000/login',
-    });
+    return sendPasswordResetEmail(auth, email);
   }
 
   function resetPassword(oobCode, newPassword) {
@@ -63,22 +74,35 @@ export default function AuthContextProvider({ children }) {
   }
 
   function logout() {
-    return signOut(auth);
+    setUserLoading(true);
+    return signOut(auth)
+      .then(() => setUserLoading(false))
+      .catch((e) => {
+        setUserLoading(false);
+        throw e;
+      });
   }
 
   function signInWithGoogle() {
+    setUserLoading(true);
     const provider = new GoogleAuthProvider();
-    return signInWithRedirect(auth, provider);
+    return signInWithPopup(auth, provider)
+      .then(() => setUserLoading(false))
+      .catch((e) => {
+        setUserLoading(false);
+        throw e;
+      });
   }
 
   const value = {
-    currentUser,
-    signInWithGoogle,
-    login,
-    register,
-    logout,
     forgotPassword,
+    isUserLoading,
+    login,
+    logout,
+    register,
     resetPassword,
+    signInWithGoogle,
+    user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

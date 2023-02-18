@@ -13,7 +13,10 @@ const withAuth = (Component) => (props) => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (!user) {
         setLoading(true);
-        router.push('/'); // TODO: create signin page!
+        router.push({
+          pathname: '/login',
+          query: { redirect: router.pathname },
+        });
         return;
       }
       setLoading(false);

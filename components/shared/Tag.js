@@ -2,9 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import injectSheet from 'react-jss';
 import { Button } from '@nextui-org/react';
+import { CgClose } from 'react-icons/cg';
 
 import Colors from '../colors';
-import CloseIcon from '../../public/CloseIcon';
 
 const styles = {
   tag: {
@@ -40,7 +40,7 @@ function Tag({ classes, tagName, onPressTag, onPressClose, isClosable }) {
           <Button
             size="xs"
             onPress={onPressClose}
-            icon={<CloseIcon fill="currentColor" filled />}
+            icon={<CgClose color="white" size="1.2em" />}
             className={classes.tagCloseButton}
           />
         )
