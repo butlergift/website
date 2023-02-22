@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import injectSheet from 'react-jss';
 import Head from 'next/head';
 import { useSelector, useDispatch } from 'react-redux';
-import { Container, Grid, Pagination, Spacer } from '@nextui-org/react';
+import { Container, Grid, Loading, Pagination, Spacer } from '@nextui-org/react';
 
 import ItemCard from '../../components/shared/ItemCard';
 import Colors from '../../components/colors';
@@ -32,21 +32,25 @@ const List = ({ classes, listId }) => {
     dispatch(actionsListLP.getUserList({ listId }));
   }, [listId]);
 
-  console.log('>>> listLPState', listLPState);
-
-  return (
-    <>
-      <Head>
-        <title>Butler Gift | List</title>
-        <meta name="keywords" content="gifts" />
-      </Head>
-      <Container
-        fluid
-        display="flex"
-        direction="column"
-        alignContent="center"
-        alignItems="center"
-      >
+  let content = null;
+  if (listLPState.loading) {
+    content = (
+      <Loading
+        css={{
+          display: 'flex',
+          justifyContent: 'center',
+          margin: '50px',
+        }}
+        loadingCss={{
+          $$loadingSize: '40px',
+          $$loadingBorder: '2px',
+          $$loadingColor: Colors.primary,
+        }}
+      />
+    );
+  } else {
+    content = (
+      <>
         <Spacer y={1} />
         <h1 className={classes.title}>{listLPState.listTitle}</h1>
         <Grid.Container gap={2} justify="center">
@@ -71,6 +75,24 @@ const List = ({ classes, listId }) => {
           )
         }
         <Spacer y={1} />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Head>
+        <title>Butler Gift | List</title>
+        <meta name="keywords" content="gifts" />
+      </Head>
+      <Container
+        fluid
+        display="flex"
+        direction="column"
+        alignContent="center"
+        alignItems="center"
+      >
+        {content}
       </Container>
     </>
   );

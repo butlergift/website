@@ -4,13 +4,15 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { HYDRATE } from 'next-redux-wrapper';
 
 import * as firebase from '../firebase/index';
+import * as localStorage from '../utils/localStorage';
 
+const CACHE_GET_USER_LIST = 60; // 1min
 const SLICE_NAME = 'listLandingPage';
 const INITIAL_STATE = {
   error: '',
   list: [],
   listId: '',
-  step: '',
+  loading: false,
 };
 
 const resetState = (state) => {
@@ -18,7 +20,16 @@ const resetState = (state) => {
   Object.keys(INITIAL_STATE).forEach((k) => { state[k] = INITIAL_STATE[k]; });
 };
 
-const getUserList = createAsyncThunk(`${SLICE_NAME}/getUserList`, async (args) => firebase.getListItemsById(args));
+const getUserList = createAsyncThunk(`${SLICE_NAME}/getUserList`, async (args) => {
+  const key = `${SLICE_NAME}:getUserList:${args.listId}`;
+  const list = localStorage.getItem(key, []);
+  if (list.length > 0) {
+    return { listId: args.listId, list };
+  }
+  const remoteList = await firebase.getListItemsById(args);
+  localStorage.setItem(key, remoteList, CACHE_GET_USER_LIST);
+  return { listId: args.listId, list: remoteList };
+});
 
 export const slice = createSlice({
   name: SLICE_NAME,
@@ -37,23 +48,20 @@ export const slice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(getUserList.pending, (state) => {
-        resetState(state);
-        state.step = 'pending';
+        state.loading = true;
         state.error = '';
       })
       .addCase(getUserList.fulfilled, (state, action) => {
-        resetState(state);
+        state.loading = false;
         if (action?.payload?.error) {
-          state.step = 'rejected';
           state.error = action.payload.error.message;
           return;
         }
-        state.list = action.payload;
-        state.step = 'fulfilled';
+        state.list = action.payload.list;
+        state.listId = action.payload.listId;
       })
       .addCase(getUserList.rejected, (state, action) => {
-        resetState(state);
-        state.step = 'rejected';
+        state.loading = false;
         state.error = action?.error?.message || action?.payload || '';
       });
   },

@@ -1,4 +1,4 @@
-import * as Utils from './Utils';
+import * as object from '../utils/object';
 
 export function test() {}
 
@@ -25,7 +25,7 @@ export async function getListItemsById(firestore, db, args) {
 
     const items = [];
     querySnapshot.forEach((doc) => {
-      items.push(Utils.snakeToCamel(doc.data()));
+      items.push(object.snakeToCamel(doc.data()));
     });
 
     // 5min TTL
