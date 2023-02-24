@@ -6,12 +6,12 @@ import { HYDRATE } from 'next-redux-wrapper';
 import * as firebase from '../firebase/index';
 import * as localStorage from '../utils/localStorage';
 
-const CACHE_GET_USER_LIST = 60; // 1min
-const SLICE_NAME = 'listLandingPage';
+const CACHE_GET_USER_ITEM = 60; // 1min
+const SLICE_NAME = 'itemLandingPage';
 const INITIAL_STATE = {
   error: '',
-  items: [],
-  listDetails: {},
+  item: {},
+  itemId: '',
   loading: false,
 };
 
@@ -20,15 +20,20 @@ const resetState = (state) => {
   Object.keys(INITIAL_STATE).forEach((k) => { state[k] = INITIAL_STATE[k]; });
 };
 
-const getUserListItemsById = createAsyncThunk(`${SLICE_NAME}/getUserListItemsById`, async (args) => {
-  const key = `${SLICE_NAME}:getUserListItemsById:${args.listId}`;
-  const listItems = localStorage.getItem(key, {});
-  if (Object.keys(listItems).length > 0) {
-    return listItems;
+const setItem = (state, action) => {
+  state.item = action.payload.item;
+  state.itemId = action.payload.itemId;
+};
+
+const getUserItemById = createAsyncThunk(`${SLICE_NAME}/getUserItemById`, async (args) => {
+  const key = `${SLICE_NAME}:getUserItemById:${args.itemId}`;
+  const item = localStorage.getItem(key, []);
+  if (Object.keys(item).length > 0) {
+    return { itemId: args.itemId, item };
   }
-  const remoteListItems = await firebase.getUserListItemsById(args);
-  localStorage.setItem(key, remoteListItems, CACHE_GET_USER_LIST);
-  return remoteListItems;
+  const remoteItem = await firebase.getUserItemById(args);
+  localStorage.setItem(key, remoteItem, CACHE_GET_USER_ITEM);
+  return { itemId: args.itemId, item: remoteItem };
 });
 
 export const slice = createSlice({
@@ -36,35 +41,37 @@ export const slice = createSlice({
   initialState: INITIAL_STATE,
   reducers: {
     resetState,
+    setItem,
 
     // Special reducer for hydrating the state
     extraReducers: {
       [HYDRATE]: (state, action) => ({
         ...state,
-        ...action.payload,
+        ...action.payload[SLICE_NAME],
       }),
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getUserListItemsById.pending, (state) => {
+      .addCase(getUserItemById.pending, (state) => {
         state.loading = true;
         state.error = '';
       })
-      .addCase(getUserListItemsById.fulfilled, (state, action) => {
+      .addCase(getUserItemById.fulfilled, (state, action) => {
         state.loading = false;
         if (action?.payload?.error) {
           state.error = action.payload.error.message;
           return;
         }
-        Object.keys(action.payload).forEach((k) => { state[k] = action.payload[k]; });
+        state.item = action.payload.item;
+        state.itemId = action.payload.itemId;
       })
-      .addCase(getUserListItemsById.rejected, (state, action) => {
+      .addCase(getUserItemById.rejected, (state, action) => {
         state.loading = false;
         state.error = action?.error?.message || action?.payload || '';
       });
   },
 });
 
-export const actions = { ...slice.actions, getUserListItemsById };
+export const actions = { ...slice.actions, getUserItemById };
 export default slice.reducer;

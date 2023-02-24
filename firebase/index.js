@@ -27,5 +27,6 @@ try {
 export const auth = firebaseAuth.getAuth(app);
 const firestore = firebaseFirestore.getFirestore(app);
 
+export const getUserItemById = (args) => wishlistItems.getUserItemById(firebaseFirestore, firestore, args);
+export const getUserListItemsById = (args) => wishlistItems.getUserListItemsById(firebaseFirestore, firestore, args);
 export const getUserWishlists = (args) => wishlists.getUserWishlists(firebaseFirestore, firestore, args);
-export const getListItemsById = (args) => wishlistItems.getListItemsById(firebaseFirestore, firestore, args);

@@ -11,11 +11,6 @@ export async function getUserWishlists(firestore, db, args) {
       throw new Error('Sign in required!');
     }
 
-    // const cacheKey = `getUserWishlists:${userId}`;
-    // if (LRUCache.has(cacheKey)) {
-    //   return LRUCache.get(cacheKey);
-    // }
-
     const querySnapshot = await firestore.getDocs(firestore.query(
       firestore.collection(db, 'Wishlists'),
       firestore.where('user_id', '==', userId),

@@ -1,11 +1,34 @@
+import Promise from 'bluebird';
 import * as object from '../utils/object';
 
-export function test() {}
+/**
+ * Get user item based on itemId
+ */
+export async function getUserItemById(firestore, db, args) {
+  try {
+    const { itemId } = args;
+
+    if (!itemId) {
+      throw new Error('Item ID required!');
+    }
+
+    const snap = await firestore.getDocs(firestore.query(
+      firestore.collection(db, 'WishlistItems'),
+      firestore.where('product_id', '==', itemId),
+      firestore.limit(1),
+    ));
+
+    const items = snap?.docs?.map((doc) => object.snakeToCamel(doc.data())) || [];
+    return items[0] || {};
+  } catch ({ name, message, stack }) {
+    return { error: { name, message, stack } };
+  }
+}
 
 /**
- * Get a items by listId from cache or from Firestore
+ * Get a items by listId
  */
-export async function getListItemsById(firestore, db, args) {
+export async function getUserListItemsById(firestore, db, args) {
   try {
     const { listId } = args;
 
@@ -13,24 +36,40 @@ export async function getListItemsById(firestore, db, args) {
       throw new Error('List ID required!');
     }
 
-    // const cacheKey = `getListItemsById:${listId}`;
-    // if (LRUCache.has(cacheKey)) {
-    //   return LRUCache.get(cacheKey);
-    // }
-
-    const querySnapshot = await firestore.getDocs(firestore.query(
+    const snapItemsPromise = firestore.getDocs(firestore.query(
       firestore.collection(db, 'WishlistItems'),
       firestore.where('wishlist_id', '==', listId),
     ));
 
-    const items = [];
-    querySnapshot.forEach((doc) => {
-      items.push(object.snakeToCamel(doc.data()));
-    });
+    const snapListDetailsPromise = firestore.getDocs(firestore.query(
+      firestore.collection(db, 'Wishlists'),
+      firestore.where('wishlist_id', '==', listId),
+      firestore.limit(1),
+    ));
 
-    // 5min TTL
-    // LRUCache.set(cacheKey, items, { ttl: CACHE_GET_LIST_ITEMS_SEC });
-    return items;
+    const [snapItems, snapListDetails] = await Promise.all([snapItemsPromise, snapListDetailsPromise]);
+    const items = snapItems?.docs?.map((doc) => {
+      const item = object.snakeToCamel(doc.data());
+      return {
+        imageUrl: item.imageUrl,
+        productId: item.productId,
+        productTags: item.productTags,
+        productUrl: item?.affiliateUrl?.length > 0 ? item.affiliateUrl : item.productUrl,
+      };
+    }) || [];
+    const listDetails = (snapListDetails?.docs?.map((doc) => {
+      const details = object.snakeToCamel(doc.data());
+      const response = {
+        name: details.name,
+        listId: details.wishlistId,
+      };
+      if (!details.isDefault) {
+        response.expires = details.expires;
+      }
+      return response;
+    }) || [])[0] || {};
+
+    return { items, listDetails };
   } catch ({ name, message, stack }) {
     return { error: { name, message, stack } };
   }
