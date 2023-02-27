@@ -1,6 +1,8 @@
 /* eslint-disable react/jsx-no-constructed-context-values */
 /* eslint-disable react/prop-types */
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { httpsCallable } from 'firebase/functions';
 import {
   browserLocalPersistence,
   confirmPasswordReset,
@@ -12,18 +14,22 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateProfile,
 } from 'firebase/auth';
 
-import { auth } from '../../../firebase/index';
+import { auth, functions } from '../../../firebase/index';
+import { actions as actionsUserDetails } from '../../../redux/sliceUserDetails';
 
 const AuthContext = createContext({
-  user: null,
-  signInWithGoogle: () => Promise,
-  login: () => Promise,
-  register: () => Promise,
-  logout: () => Promise,
   forgotPassword: () => Promise,
+  isUserLoading: false,
+  login: () => Promise,
+  logout: () => Promise,
+  register: () => Promise,
   resetPassword: () => Promise,
+  signInWithGoogle: () => Promise,
+  updateUserProfile: () => Promise,
+  user: null,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -33,11 +39,23 @@ setPersistence(auth, browserLocalPersistence);
 
 export default function AuthContextProvider({ children }) {
   const [isUserLoading, setUserLoading] = useState(false);
-  const [user, setUser] = useState(null);
 
+  const userDetailsState = useSelector((state) => state.userDetails) || {};
+  const dispatch = useDispatch();
+
+  // Not needed since we will use Redux which will be controlled by all actions below
+  // const [user, setUser] = useState(null);
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+      if (currentUser) {
+        dispatch(actionsUserDetails.setUser({
+          userId: currentUser.uid,
+          displayName: currentUser.displayName,
+          email: currentUser.email,
+          photoURL: currentUser.photoURL,
+        }));
+        dispatch(actionsUserDetails.getUserDetails({ userId: auth.currentUser.uid }));
+      }
       setUserLoading(false);
     });
     return () => {
@@ -55,9 +73,11 @@ export default function AuthContextProvider({ children }) {
       });
   }
 
-  function register(email, password) {
+  function register(email, password, birthday) {
     setUserLoading(true);
     return createUserWithEmailAndPassword(auth, email, password)
+      .then(async ({ user: newUser }) => httpsCallable(functions, 'Users_onUpdate')({ userId: newUser.uid, birthday }))
+      .then(() => dispatch(actionsUserDetails.setUserDetails({ birthday })))
       .then(() => setUserLoading(false))
       .catch((e) => {
         setUserLoading(false);
@@ -76,6 +96,7 @@ export default function AuthContextProvider({ children }) {
   function logout() {
     setUserLoading(true);
     return signOut(auth)
+      .then(() => dispatch(actionsUserDetails.resetState()))
       .then(() => setUserLoading(false))
       .catch((e) => {
         setUserLoading(false);
@@ -94,6 +115,19 @@ export default function AuthContextProvider({ children }) {
       });
   }
 
+  function updateUserProfile({ displayName, birthday }) {
+    setUserLoading(true);
+    const promise1 = displayName ? updateProfile(auth.currentUser, { displayName }) : Promise.resolve();
+    const promise2 = birthday ? httpsCallable(functions, 'Users_onUpdate')({ userId: auth.currentUser.uid, birthday }) : Promise.resolve();
+    return Promise.all([promise1, promise2])
+      .then(() => setUserLoading(false))
+      .then(() => dispatch(actionsUserDetails.setUserDetails({ displayName, birthday })))
+      .catch((e) => {
+        setUserLoading(false);
+        throw e;
+      });
+  }
+
   const value = {
     forgotPassword,
     isUserLoading,
@@ -102,7 +136,8 @@ export default function AuthContextProvider({ children }) {
     register,
     resetPassword,
     signInWithGoogle,
-    user,
+    updateUserProfile,
+    user: userDetailsState.user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

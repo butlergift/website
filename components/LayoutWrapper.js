@@ -5,18 +5,37 @@ import injectSheet from 'react-jss';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Button, Card, Loading, Navbar, Popover, User } from '@nextui-org/react';
+import { Avatar, Button, Card, Loading, Navbar, Popover } from '@nextui-org/react';
+import { AiOutlineUser } from 'react-icons/ai';
 
 import srcLogoIcon from '../public/logo.svg';
 import Colors from './colors';
 import { useAuth } from './shared/auth/AuthContext';
 
-const DEFAULT_USER_PROFILE = 'https://firebasestorage.googleapis.com/v0/b/butlergift-dev-fdebd.appspot.com/o/images%2Fcompany_default_profile_512.png?alt=media&token=04afffe7-7162-424c-819c-8364e7afbf3f';
 const styles = {
-  logoutBtn: {
-    backgroundColor: Colors.primaryLight,
+  loginBtn: {
+    backgroundColor: Colors.white,
     color: Colors.black,
-    width: '100%',
+    margin: '10px',
+    padding: 0,
+  },
+  rightMenuBtn: {
+    backgroundColor: Colors.white,
+    color: Colors.black,
+    margin: '10px',
+    padding: 0,
+    '&:hover': {
+      backgroundColor: Colors.grayMedium,
+    },
+  },
+  userAvatar: {
+    width: '40px',
+    height: '40px',
+    cursor: 'pointer',
+    border: `1px solid ${Colors.grayMediumX}`,
+  },
+  defaultUserPhoto: {
+    color: Colors.grayDarkXX,
   },
 };
 
@@ -28,7 +47,13 @@ const LayoutWrapper = ({ children, classes }) => {
 
   // Hide content if we are on login page
   if (router.pathname === '/login') {
-    content = null;
+    content = (
+      <Navbar.Content>
+        <Navbar.Item>
+          <Button auto className={classes.loginBtn} as={Link} href="/">Home</Button>
+        </Navbar.Item>
+      </Navbar.Content>
+    );
   } else if (isUserLoading) {
     content = (
       <Navbar.Content>
@@ -54,18 +79,19 @@ const LayoutWrapper = ({ children, classes }) => {
         <Navbar.Item>
           <Popover>
             <Popover.Trigger>
-              <User
-                as="button"
-                pointer
-                src={user.photoURL || DEFAULT_USER_PROFILE}
-                name={user.displayName}
-                bordered
+              <Avatar
+                src={user.photoURL}
+                className={classes.userAvatar}
+                text={user.displayName}
+                icon={<AiOutlineUser size={40} className={classes.defaultUserPhoto} />}
               />
             </Popover.Trigger>
             <Popover.Content>
               <Card>
-                <Card.Body>
-                  <Button onPress={logout} className={classes.logoutBtn}>Logout</Button>
+                <Card.Body css={{ padding: 0, margin: 0 }}>
+                  <Button className={classes.rightMenuBtn} as={Link} href="/login">Profile</Button>
+                  <Card.Divider css={{ alignSelf: 'center', width: '75%' }} />
+                  <Button onPress={logout} className={classes.rightMenuBtn}>Logout</Button>
                 </Card.Body>
               </Card>
             </Popover.Content>
@@ -77,7 +103,7 @@ const LayoutWrapper = ({ children, classes }) => {
     content = (
       <Navbar.Content>
         <Navbar.Item>
-          <Button auto className={classes.logoutBtn} as={Link} href="/login">Login</Button>
+          <Button auto className={classes.loginBtn} as={Link} href="/login">Login</Button>
         </Navbar.Item>
       </Navbar.Content>
     );

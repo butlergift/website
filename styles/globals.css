@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap');
 
-body {
-  background: 'white';
+body, html {
+  background-color: #F1F3F5; /* Colors.grayLight */
+  width: 100%;
+  height: 100%;
 }

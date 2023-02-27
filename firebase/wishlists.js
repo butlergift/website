@@ -1,7 +1,7 @@
 export function test() {}
 
 /**
- * Get User's wishlist from cache or from Firestore
+ * Get User's wishlist
  */
 export async function getUserWishlists(firestore, db, args) {
   try {
@@ -45,8 +45,6 @@ export async function getUserWishlists(firestore, db, args) {
       await batch.commit();
     }
 
-    // 5min TTL
-    // LRUCache.set(cacheKey, validWishlists, { ttl: CACHE_GET_WISHLISTS_SEC });
     return validWishlists;
   } catch ({ name, message, stack }) {
     return { error: { name, message, stack } };

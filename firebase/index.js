@@ -1,12 +1,14 @@
 import * as firebaseApp from 'firebase/app';
 import * as firebaseAuth from 'firebase/auth';
 import * as firebaseFirestore from 'firebase/firestore';
+import * as firebaseFunctions from 'firebase/functions';
 
 // import { getAnalytics } from 'firebase/analytics';
 // https://firebase.google.com/docs/web/setup#available-libraries
 
-import * as wishlists from './wishlists';
+import * as userDetails from './userDetails';
 import * as wishlistItems from './wishlistItems';
+import * as wishlists from './wishlists';
 
 let app = null;
 try {
@@ -25,8 +27,10 @@ try {
 
 // const analytics = getAnalytics(app);
 export const auth = firebaseAuth.getAuth(app);
-const firestore = firebaseFirestore.getFirestore(app);
+export const firestore = firebaseFirestore.getFirestore(app);
+export const functions = firebaseFunctions.getFunctions(app);
 
 export const getUserItemById = (args) => wishlistItems.getUserItemById(firebaseFirestore, firestore, args);
 export const getUserListItemsById = (args) => wishlistItems.getUserListItemsById(firebaseFirestore, firestore, args);
 export const getUserWishlists = (args) => wishlists.getUserWishlists(firebaseFirestore, firestore, args);
+export const getUserDetails = (args) => userDetails.getUserDetails(firebaseFirestore, firestore, args);
